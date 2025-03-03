@@ -117,14 +117,26 @@ population_data$FIP <- paste0(population_data$STATE_FIP, population_data$COUNTY_
 Here is the code I used to select only columns that contain "NAME" or "2021" and remove counties with FIP code "000"
 
 ```{r}
-population_data_filtered <- population_data %>%
-  filter(COUNTY_FIP !="000") %>%
-   select(contains("NAME") | contains("2021"))
+population_data_2021 <- population_data_filtered %>%
+  filter(COUNTY_FIP !="000", STNAME == my.state) %>%
+   select(contains("NAME") | contains("2021"), FIP)
 ```
 
-Here is the code I used to find the range of populations in Colorado counties in 2021. The range was between 54 and 9809462 people
+Here is the code I used to find the range of populations in Colorado counties in 2021. The range was between 741 and 737287 people
 ```{r}
-range(population_data_filtered$POPESTIMATE2021)
+range(population_data_2021$POPESTIMATE2021)
+```
+Here, I filtered the covid data to only contain the data for 2021.
+```{r}
+colorado_covid_2021 <- colorado_covid_temp %>%
+  filter(year(date) == 2021) %>%     
+  select(date, everything())  
+  
+```
+Here, joined 
+```{r}
+per_capita_2021 <- colorado_covid_2021 %>%
+  left_join(population_data_2021, by = "FIP")
 ```
 
 
