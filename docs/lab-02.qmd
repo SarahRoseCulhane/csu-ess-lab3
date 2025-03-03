@@ -7,3 +7,43 @@ author:
 format: html
  theme: Solar
 ---
+```{r}
+library(tidyverse); library(flextable)
+data = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+```
+Here is how I created an object called my.date set as "2022-02-01" and an object called my.state, set as "Colorado"
+```{r}
+my.date <- as.Date("2022-02-01")  
+my.state <- "Colorado"
+```
+Here, I created a new subset
+```{r}
+colorado_data <- data %>%
+  filter(state == my.state) %>%
+  arrange(county, date) %>%
+  group_by(county) %>%
+  mutate(
+    new_cases = cases - lag(cases, default = 0),  
+    new_deaths = deaths - lag(deaths, default = 0)  
+  ) %>%
+  ungroup()
+
+```
+This is the code I used to generate a table of the top 5 countries with the most cumulative cases
+```{r}
+most_cumulative_cases <- colorado_data %>%
+  filter(date == my.date) %>%
+  arrange(desc(cases)) %>%
+  slice_head(n = 5) %>%
+  select(county, cases) %>%
+  rename("County" = county, "Cumulative Cases" = cases)
+
+most_cumulative_cases_table <- flextable(most_cumulative_cases) %>%
+  compose(j = "County", value = as_paragraph("County: ", County)) %>%
+  compose(j = "Cumulative Cases", value = as_paragraph("Cases: ", Cumulative.Cases)) %>%
+  set_table_properties(width = 1, layout = "autofit")
+
+most_cumulative_cases_table
+
+```
+
