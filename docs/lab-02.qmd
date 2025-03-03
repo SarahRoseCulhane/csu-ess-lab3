@@ -1,0 +1,9 @@
+---
+title: "Lab 3: COVID-19"
+subtitle: 'Ecosystem Science and Sustainability 330'
+author:
+  - name: https://github.com/SarahRoseCulhane
+    email: sculhane@colostate.edu
+format: html
+ theme: Solar
+---
