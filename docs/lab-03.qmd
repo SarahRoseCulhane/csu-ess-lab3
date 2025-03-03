@@ -8,6 +8,8 @@ format: html
  theme: Solar
 ---
 
+**question 1: Public Data**
+
 ```{r}
 library(tidyverse); library(flextable)
 data = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
@@ -20,10 +22,12 @@ my.date <- as.Date("2022-02-01")
 my.state <- "Colorado"
 ```
 
-Here, I created a new subset
+**Question 2: Daily Summary**
+
+Here, I created a subset limiting the data to Colorado and adding new columns for new cases and new deaths
 
 ```{r}
-colorado_data <- data %>%
+colorado_covid <- data %>%
   filter(state == my.state) %>%
   arrange(county, date) %>%
   group_by(county) %>%
@@ -35,78 +39,92 @@ colorado_data <- data %>%
 
 ```
 
-Here is the code I used to generate a data set of the 5 counties with the most cumulative cases
+Here is the code I used to generate a data set of the 5 counties with the most cumulative cases.
 
 ```{r}
-top_cumulative_cases <- colorado_data %>%
+covid_most_cumulative <- colorado_data %>%
   filter(date == my.date) %>%
   arrange(desc(cases)) %>%
   slice_head(n = 5) %>%
-  select(county, cases) %>%
-  rename("County" = county, "Cumulative Cases" = cases)
+  select(county, cases) 
 ```
 
-Here is the code I used to print the table
+Here is the code I used to make a table of the data using the flextable function.
 
 ```{r}
-print(top_cumulative_cases)
+covid_most_cumulative_table <- flextable(covid_most_cumulative) %>%
+  add_footer_lines("Top 5 counties in Colorado with the most cumulative COVID cases on 2022-02-01") %>%
+  set_caption("Table 1: Most cumulative COVID cases") %>%
+  set_table_properties(layout = "autofit", width = 0.5) %>%
+  align(align = "center", part = "all") 
+
+covid_most_cumulative_table
 ```
 
 Here is the code I used to generate a table showing the top 5 counties with the most new cases
 
 ```{r}
-top_new_cases <- colorado_data %>%
+covid_new_cases <- colorado_data %>%
   filter(date == my.date) %>%
+  select (county, new_cases) %>%
   arrange(desc(new_cases)) %>%
-  slice_head(n = 5) %>%
-  select(county, new_cases) %>%
-  rename("County" = county, "New Cases" = new_cases)
+  slice_head(n = 5) 
+```
 
-print(top_new_cases)
+Here is the code I used to generate a table of the data using flextable
+
+```{r}
+covid_new_cases_table <- flextable(covid_new_cases) %>%
+  add_footer_lines("Top 5 counties in Colorado with the most new cases on 2022-02-01") %>%
+  set_caption("Table 2: Most new COVID cases") %>%
+  set_table_properties(layout = "autofit", width = 0.5) %>%
+  align(align = "center", part = "all")
+covid_new_cases_table
+
 ```
 
 **Question 3: Normalizing Data** I used the code to complete the following tasks:
 
+I used the following code to read the population data
+```{r}
+pop_url <- 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv'
+```
+
+First, I renamed the "fips" column "FIP" in the covid data
+```{r}
+colorado_covid_temp <- colorado_covid %>%
+  rename(FIP = fips)
+colorado_covid_temp
+```
+Then, I loaded the population data
+```{r}
+population_data = read_csv('https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv')
+```
+
+I used the following code to:
 -   Converted the STATE numeric into a character forced to 2 digits with a leading 0 (when needed)
 -   Converted the COUNTY numeric into a character forced to 3 digits with leading 0’s (when needed)
 -   Created a FIP variable the STATE numeric into a character forced to 2 digits with a leading 0 (when needed)
-
 ```{r}
-pop_data <- pop_data %>%
-  mutate(
-    STATE = as.numeric(STATE),  # Ensure STATE is numeric
-    COUNTY = as.numeric(COUNTY)  # Ensure COUNTY is numeric
-  )
+#Converted STATE numeric and COUNTY numberic into characters
+population_data$STATE_FIP <- sprintf("%02s", population_data$STATE)
+population_data$COUNTY_FIP <- sprintf("%03s", population_data$COUNTY)
 
-# Step 4: Create the STATE_FIP and COUNTY_FIP columns
-pop_data <- pop_data %>%
-  mutate(
-    STATE_FIP = sprintf("%02d", STATE),  # Format STATE as a 2-digit character with leading zero
-    COUNTY_FIP = sprintf("%03d", COUNTY),  # Format COUNTY as a 3-digit character with leading zero
-    FIP = paste0(STATE_FIP, COUNTY_FIP)  # Combine to create the 5-digit FIP code
-  )
+#created a FIP variable
+population_data$FIP <- paste0(population_data$STATE_FIP, population_data$COUNTY_FIP)
 ```
 
-1. Using this code, I kept only the columns containing "NAME" or "2021" but kept the "FIP" column, removing all state level rows
+Here is the code I used to select only columns that contain "NAME" or "2021" and remove counties with FIP code "000"
 
 ```{r}
-pop_data_temp <- pop_data %>%
-   select(contains("NAME"), contains("2021"), contains("FIP")) %>%
-   filter(COUNTY_FIP != "000")
-head(pop_data_temp)
+population_data_filtered <- population_data %>%
+  filter(COUNTY_FIP !="000") %>%
+   select(contains("NAME") | contains("2021"))
 ```
-2. The dimensions of the new data frame, called pop_data_temp, is a table with 3195 rows and 18 columns. The dimensions of the table itself is 3144 by 21.
-```{r}
-dim(pop_data_temp)
-```
-```{r}
-glimpse(pop_data_temp)
-```
-Glimpse was used to get the names of the columns in the new data set.
 
-3. The range of populations in Colorado in 2021 was 54 - 9809462 people.
+Here is the code I used to find the range of populations in Colorado counties in 2021. The range was between 54 and 9809462 people
 ```{r}
-range(pop_data_temp$POPESTIMATE2021)
+range(population_data_filtered$POPESTIMATE2021)
 ```
 
 
