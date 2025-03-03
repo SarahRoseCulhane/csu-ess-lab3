@@ -133,11 +133,68 @@ colorado_covid_2021 <- colorado_covid_temp %>%
   select(date, everything())  
   
 ```
-Here, joined 
+Here, joined colorado_covid_2021 and poulation_data_2021
 ```{r}
 per_capita_2021 <- colorado_covid_2021 %>%
   left_join(population_data_2021, by = "FIP")
 ```
+
+Here, I calculated per capita cumulative cases, per capita new cases, and per capita new deaths
+
+```{r}
+per_capita_2021 <- per_capita_2021 %>%
+  mutate(
+    per_capita_cumulative_cases = cases / POPESTIMATE2021,  
+    per_capita_new_cases = new_cases / POPESTIMATE2021,               per_capita_new_deaths = new_deaths / POPESTIMATE2021)    
+```
+However, it looks like there are a lot of duplicates, so here is the code I used to clean up the dataset.
+```{r}
+per_capita_2021_clean <- per_capita_2021 %>%
+  distinct()  
+```
+
+Here is the code I used calculate the total per capita new cases and total per capita new cases, and per capita cumulative cases per county
+
+```{r}
+per_capita_county_summary <- per_capita_2021_clean %>%
+  group_by(county) %>%  
+  summarize(
+    total_cumulative_cases = sum(per_capita_cumulative_cases, na.rm = TRUE),  
+    total_new_cases = sum(per_capita_new_cases, na.rm = TRUE),    
+    total_new_deaths = sum(per_capita_new_deaths, na.rm = TRUE))
+```
+
+Here is the code I used to generate a table with the most cumulative cases per capita
+
+```{r}
+per_capita_county_summary_table <- per_capita_county_summary %>%
+  select (county, total_cumulative_cases) %>%
+  arrange(desc(total_cumulative_cases)) %>%
+  slice_head(n = 5) 
+
+per_capita_county_summary_table <- flextable(per_capita_county_summary_table) %>%
+  add_footer_lines("Top 5 counties in Colorado with the most cumulative cases per capita in 2021") %>%
+  set_caption("Table 3: cumulative cases per capita") %>%
+  set_table_properties(layout = "autofit", width = 0.5) %>%
+  align(align = "center", part = "all")
+per_capita_county_summary_table
+```
+Here is the code I used to create a table of the top five counties in colorado with the most new cases in 2021
+```{r}
+per_capita_county_new_cases <- per_capita_county_summary %>%
+  select (county, total_new_cases) %>%
+  arrange(desc(total_new_cases)) %>%
+  slice_head(n = 5) 
+
+per_capita_county_new_cases <- flextable(per_capita_county_new_cases) %>%
+  add_footer_lines("Top 5 counties in Colorado with the most new cases per capita in 2021") %>%
+  set_caption("Table 3: new cases per capita") %>%
+  set_table_properties(layout = "autofit", width = 0.5) %>%
+  align(align = "center", part = "all")
+per_capita_county_new_cases
+```
+
+
 
 
 
