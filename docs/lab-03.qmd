@@ -86,25 +86,27 @@ covid_new_cases_table
 **Question 3: Normalizing Data** I used the code to complete the following tasks:
 
 I used the following code to read the population data
+
 ```{r}
 pop_url <- 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv'
 ```
 
 First, I renamed the "fips" column "FIP" in the covid data
+
 ```{r}
 colorado_covid_temp <- colorado_covid %>%
   rename(FIP = fips)
 colorado_covid_temp
 ```
+
 Then, I loaded the population data
+
 ```{r}
 population_data = read_csv('https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv')
 ```
 
-I used the following code to:
--   Converted the STATE numeric into a character forced to 2 digits with a leading 0 (when needed)
--   Converted the COUNTY numeric into a character forced to 3 digits with leading 0’s (when needed)
--   Created a FIP variable the STATE numeric into a character forced to 2 digits with a leading 0 (when needed)
+I used the following code to: - Converted the STATE numeric into a character forced to 2 digits with a leading 0 (when needed) - Converted the COUNTY numeric into a character forced to 3 digits with leading 0’s (when needed) - Created a FIP variable the STATE numeric into a character forced to 2 digits with a leading 0 (when needed)
+
 ```{r}
 #Converted STATE numeric and COUNTY numberic into characters
 population_data$STATE_FIP <- sprintf("%02s", population_data$STATE)
@@ -123,17 +125,22 @@ population_data_2021 <- population_data_filtered %>%
 ```
 
 Here is the code I used to find the range of populations in Colorado counties in 2021. The range was between 741 and 737287 people
+
 ```{r}
 range(population_data_2021$POPESTIMATE2021)
 ```
+
 Here, I filtered the covid data to only contain the data for 2021.
+
 ```{r}
 colorado_covid_2021 <- colorado_covid_temp %>%
-  filter(year(date) == 2021) %>%     
-  select(date, everything())  
+  filter(date == my.date) %>%     
+  select(everything())  
   
 ```
+
 Here, joined colorado_covid_2021 and poulation_data_2021
+
 ```{r}
 per_capita_2021 <- colorado_covid_2021 %>%
   left_join(population_data_2021, by = "FIP")
@@ -147,7 +154,9 @@ per_capita_2021 <- per_capita_2021 %>%
     per_capita_cumulative_cases = cases / POPESTIMATE2021,  
     per_capita_new_cases = new_cases / POPESTIMATE2021,               per_capita_new_deaths = new_deaths / POPESTIMATE2021)    
 ```
+
 However, it looks like there are a lot of duplicates, so here is the code I used to clean up the dataset.
+
 ```{r}
 per_capita_2021_clean <- per_capita_2021 %>%
   distinct()  
@@ -159,51 +168,120 @@ Here is the code I used calculate the total per capita new cases and total per c
 per_capita_county_summary <- per_capita_2021_clean %>%
   group_by(county) %>%  
   summarize(
-    total_cumulative_cases = sum(per_capita_cumulative_cases, na.rm = TRUE),  
-    total_new_cases = sum(per_capita_new_cases, na.rm = TRUE),    
-    total_new_deaths = sum(per_capita_new_deaths, na.rm = TRUE))
+    total_cumulative_cases_per_capita = sum(per_capita_cumulative_cases, na.rm = TRUE),  
+    total_new_cases_per_capita = sum(per_capita_new_cases, na.rm = TRUE),    
+    total_new_deaths_per_capita = sum(per_capita_new_deaths, na.rm = TRUE))
 ```
 
 Here is the code I used to generate a table with the most cumulative cases per capita
 
 ```{r}
 per_capita_county_summary_table <- per_capita_county_summary %>%
-  select (county, total_cumulative_cases) %>%
-  arrange(desc(total_cumulative_cases)) %>%
+  select (county, total_cumulative_cases_per_capita) %>%
+  arrange(desc(total_cumulative_cases_per_capita)) %>%
   slice_head(n = 5) 
 
 per_capita_county_summary_table <- flextable(per_capita_county_summary_table) %>%
-  add_footer_lines("Top 5 counties in Colorado with the most cumulative cases per capita in 2021") %>%
+  add_footer_lines("Top 5 counties in Colorado with the most cumulative cases per capita on 2022-02-01") %>%
   set_caption("Table 3: cumulative cases per capita") %>%
   set_table_properties(layout = "autofit", width = 0.5) %>%
   align(align = "center", part = "all")
 per_capita_county_summary_table
 ```
+
 Here is the code I used to create a table of the top five counties in colorado with the most new cases in 2021
+
 ```{r}
 per_capita_county_new_cases <- per_capita_county_summary %>%
-  filter(date == my.date) %>%
-  select (county, total_new_cases) %>%
-  arrange(desc(total_new_cases)) %>%
+  select (county, total_new_cases_per_capita) %>%
+  arrange(desc(total_new_cases_per_capita)) %>%
   slice_head(n = 5) 
 
 per_capita_county_new_cases <-  flextable(per_capita_county_new_cases) %>%
-  add_footer_lines("Top 5 counties in Colorado with the most new cases per capita in 2021") %>%
+  add_footer_lines("Top 5 counties in Colorado with the most new cases per capita on 2022-02-01") %>%
   set_caption("Table 3: new cases per capita") %>%
   set_table_properties(layout = "autofit", width = 0.5) %>%
   align(align = "center", part = "all")
 per_capita_county_new_cases
 ```
-Question 4: Rolling Thresholds
 
-Here is how I filtered the COVID/population data to only include the last 14 days
+**Question 4: Rolling Thresholds**
+
+Here is the code I used to do the following:
+
+-   filtered the COVID/population data to only include the last 14 days
+
+-    determined the total number of new cases in the last 14 days per 100,000 people
+
+-   printed a table of the top 5 counties
+
 ```{r}
-covid_last_14_days <- per_capita_2021_clean %>%
-  
+max_date <- max(population_covid$date)
+last_14_days <- population_covid %>%
+  filter(date == max_date - 14)
+
+last_14_days_summary <- last_14_days %>%
+  group_by(county) %>%
+  summarize(
+    total_new_cases = sum(new_cases, na.rm = TRUE),  
+    cases_per_100k = (total_new_cases / POPESTIMATE2022) * 100000
+  ) %>%
+  arrange(desc(cases_per_100k))  
+
+top_5_counties <- head(last_14_days_summary, 5)
+print(top_5_counties)
 ```
 
+Here is how I reported the number that meets the watchlist condition: “More than 100 new cases per 100,000 residents over the past 14 days…”
 
+```{r}
+watch_list_counties <- last_14_days_summary %>%
+  filter(cases_per_100k > 100)
+cat("Number of counties on the watch list: ", nrow(watch_list_counties), "\n")
+```
 
+The number of counties on the watch list was reported as 2
 
+Question 5
 
+Here is the code I used to 
+
+```{r}
+
+deaths_2021 <- population_covid %>%
+  filter(year(date) == 2021) %>%
+  group_by(county) %>%  
+  mutate(total_covid_deaths = sum(new_deaths, na.rm = TRUE)) 
+
+deaths_2021_summary <- deaths_2021
+  group_by(county) %>%
+  sum
+ 
+
+```
+
+Question 6
+1.
+2.
+
+```{r}
+state_data <- population_covid %>%
+  group_by(state, date) %>%
+  summarize(daily_new_cases = sum(new_cases, na.rm = TRUE))
+
+state_data <- state_data %>%
+  mutate(rolling_mean = rollmean(daily_new_cases, k = 7, fill = NA, align = "center"))
+
+ggplot(state_data, aes(x = date)) +
+  geom_bar(aes(y = daily_new_cases), stat = "identity", fill = "lightblue") +  # Bar plot for daily new cases
+  geom_line(aes(y = rolling_mean), color = "red", size = 1) +  # Line for 7-day rolling mean
+  facet_wrap(~ state, scales = "free_y") +  # Facet by state with free y-axis scales
+  labs(title = "Daily New COVID Cases and 7-Day Rolling Mean", x = "Date", y = "New Cases") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
+```
+3. 
+```{r}
+ 
+```
 
