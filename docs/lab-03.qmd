@@ -182,17 +182,26 @@ per_capita_county_summary_table
 Here is the code I used to create a table of the top five counties in colorado with the most new cases in 2021
 ```{r}
 per_capita_county_new_cases <- per_capita_county_summary %>%
+  filter(date == my.date) %>%
   select (county, total_new_cases) %>%
   arrange(desc(total_new_cases)) %>%
   slice_head(n = 5) 
 
-per_capita_county_new_cases <- flextable(per_capita_county_new_cases) %>%
+per_capita_county_new_cases <-  flextable(per_capita_county_new_cases) %>%
   add_footer_lines("Top 5 counties in Colorado with the most new cases per capita in 2021") %>%
   set_caption("Table 3: new cases per capita") %>%
   set_table_properties(layout = "autofit", width = 0.5) %>%
   align(align = "center", part = "all")
 per_capita_county_new_cases
 ```
+Question 4: Rolling Thresholds
+
+Here is how I filtered the COVID/population data to only include the last 14 days
+```{r}
+covid_last_14_days <- per_capita_2021_clean %>%
+  
+```
+
 
 
 
