@@ -265,23 +265,33 @@ Question 6
 2.
 
 ```{r}
-state_data <- population_covid %>%
+covid_all_states <- data %>%
+    arrange(county, date) %>%
+    group_by(county) %>%
+    mutate(
+        new_cases = cases - lag(cases, default = 0),  
+        new_deaths = deaths - lag(deaths, default = 0)  
+     ) %>%
+     ungroup()
+
+state_data <- covid_all_states %>%
+  filter(state %in% c("New York", "Colorado", "Alabama", "Ohio")) %>%
   group_by(state, date) %>%
-  summarize(daily_new_cases = sum(new_cases, na.rm = TRUE))
+  summarise(new_cases = sum(new_cases)) %>%
+  mutate(rolling_avg = zoo::rollmean(new_cases, 7, fill = NA, align = "right"))
 
-state_data <- state_data %>%
-  mutate(rolling_mean = rollmean(daily_new_cases, k = 7, fill = NA, align = "center"))
+ggplot(state_data, aes(x = date, y = new_cases, color = state)) +
+  geom_line() +
+  facet_wrap(~ state, scales = "free") +
+  labs(title = "Daily New COVID-19 Cases by State")
 
-ggplot(state_data, aes(x = date)) +
-  geom_bar(aes(y = daily_new_cases), stat = "identity", fill = "lightblue") +  # Bar plot for daily new cases
-  geom_line(aes(y = rolling_mean), color = "red", size = 1) +  # Line for 7-day rolling mean
-  facet_wrap(~ state, scales = "free_y") +  # Facet by state with free y-axis scales
-  labs(title = "Daily New COVID Cases and 7-Day Rolling Mean", x = "Date", y = "New Cases") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
 ```
 3. 
 ```{r}
- 
+state_per_capita_data <- merged_data %>%
+  group_by(state) %>%
+  arrange(state, date) %>%
+  mutate(rolling_avg = zoo::rollmean(cases_per_capita, 7, fill = NA, align = "right")) %>%
+  ungroup()
 ```
 
