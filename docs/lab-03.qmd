@@ -5,7 +5,6 @@ author:
   - name: https://github.com/SarahRoseCulhane
     email: sculhane@colostate.edu
 format: html
- theme: Solar
 ---
 
 **question 1: Public Data**
