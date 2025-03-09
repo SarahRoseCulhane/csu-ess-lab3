@@ -63,7 +63,7 @@ covid_most_cumulative_table
 Here is the code I used to generate a table showing the top 5 counties with the most new cases
 
 ```{r}
-covid_new_cases <- colorado_data %>%
+covid_new_cases <- colorado_covid %>%
   filter(date == my.date) %>%
   select (county, new_cases) %>%
   arrange(desc(new_cases)) %>%
@@ -107,18 +107,16 @@ population_data = read_csv('https://www2.census.gov/programs-surveys/popest/data
 I used the following code to: - Converted the STATE numeric into a character forced to 2 digits with a leading 0 (when needed) - Converted the COUNTY numeric into a character forced to 3 digits with leading 0’s (when needed) - Created a FIP variable the STATE numeric into a character forced to 2 digits with a leading 0 (when needed)
 
 ```{r}
-#Converted STATE numeric and COUNTY numberic into characters
 population_data$STATE_FIP <- sprintf("%02s", population_data$STATE)
 population_data$COUNTY_FIP <- sprintf("%03s", population_data$COUNTY)
 
-#created a FIP variable
 population_data$FIP <- paste0(population_data$STATE_FIP, population_data$COUNTY_FIP)
 ```
 
 Here is the code I used to select only columns that contain "NAME" or "2021" and remove counties with FIP code "000"
 
 ```{r}
-population_data_2021 <- population_data_filtered %>%
+population_data_2021 <- population_data %>%
   filter(COUNTY_FIP !="000", STNAME == my.state) %>%
    select(contains("NAME") | contains("2021"), FIP)
 ```
@@ -217,9 +215,6 @@ Here is the code I used to do the following:
 -   printed a table of the top 5 counties
 
 ```{r}
-max_date <- max(population_covid$date)
-last_14_days <- population_covid %>%
-  filter(date == max_date - 14)
 
 last_14_days_summary <- last_14_days %>%
   group_by(county) %>%
