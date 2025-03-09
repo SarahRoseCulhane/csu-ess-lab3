@@ -211,7 +211,7 @@ Here is the code I used to do the following:
 
 -   filtered the COVID/population data to only include the last 14 days
 
--    determined the total number of new cases in the last 14 days per 100,000 people
+-   determined the total number of new cases in the last 14 days per 100,000 people
 
 -   printed a table of the top 5 counties
 
@@ -244,7 +244,7 @@ The number of counties on the watch list was reported as 2
 
 Question 5
 
-Here is the code I used to 
+I don't know.
 
 ```{r}
 
@@ -253,16 +253,9 @@ deaths_2021 <- population_covid %>%
   group_by(county) %>%  
   mutate(total_covid_deaths = sum(new_deaths, na.rm = TRUE)) 
 
-deaths_2021_summary <- deaths_2021
-  group_by(county) %>%
-  sum
- 
-
 ```
 
-Question 6
-1.
-2.
+Question 6 Here is the code I used to 1. filter the data to the four states of interest and and calculate the number of daily new cases and the 7-day rolling mean 2. Make a facet plot of the data.
 
 ```{r}
 covid_all_states <- data %>%
@@ -286,12 +279,7 @@ ggplot(state_data, aes(x = date, y = new_cases, color = state)) +
   labs(title = "Daily New COVID-19 Cases by State")
 
 ```
-3. 
-```{r}
-state_per_capita_data <- merged_data %>%
-  group_by(state) %>%
-  arrange(state, date) %>%
-  mutate(rolling_avg = zoo::rollmean(cases_per_capita, 7, fill = NA, align = "right")) %>%
-  ungroup()
-```
 
+I could not figure out the last part of this question.
+
+Question 7
