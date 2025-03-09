@@ -41,7 +41,7 @@ colorado_covid <- data %>%
 Here is the code I used to generate a data set of the 5 counties with the most cumulative cases.
 
 ```{r}
-covid_most_cumulative <- colorado_data %>%
+covid_most_cumulative <- colorado_covid %>%
   filter(date == my.date) %>%
   arrange(desc(cases)) %>%
   slice_head(n = 5) %>%
