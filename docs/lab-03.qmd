@@ -204,40 +204,6 @@ per_capita_county_new_cases <-  flextable(per_capita_county_new_cases) %>%
 per_capita_county_new_cases
 ```
 
-**Question 4: Rolling Thresholds**
-
-Here is the code I used to do the following:
-
--   filtered the COVID/population data to only include the last 14 days
-
--   determined the total number of new cases in the last 14 days per 100,000 people
-
--   printed a table of the top 5 counties
-
-```{r}
-
-last_14_days_summary <- last_14_days %>%
-  group_by(county) %>%
-  summarize(
-    total_new_cases = sum(new_cases, na.rm = TRUE),  
-    cases_per_100k = (total_new_cases / POPESTIMATE2022) * 100000
-  ) %>%
-  arrange(desc(cases_per_100k))  
-
-top_5_counties <- head(last_14_days_summary, 5)
-print(top_5_counties)
-```
-
-Here is how I reported the number that meets the watchlist condition: “More than 100 new cases per 100,000 residents over the past 14 days…”
-
-```{r}
-watch_list_counties <- last_14_days_summary %>%
-  filter(cases_per_100k > 100)
-cat("Number of counties on the watch list: ", nrow(watch_list_counties), "\n")
-```
-
-The number of counties on the watch list was reported as 2
-
 **Question 5**
 
 I could not figure out how to answer the question.
