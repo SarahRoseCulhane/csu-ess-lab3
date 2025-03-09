@@ -242,20 +242,13 @@ cat("Number of counties on the watch list: ", nrow(watch_list_counties), "\n")
 
 The number of counties on the watch list was reported as 2
 
-Question 5
+**Question 5**
 
-I don't know.
+I could not figure out how to answer the question.
 
-```{r}
+**Question 6**
 
-deaths_2021 <- population_covid %>%
-  filter(year(date) == 2021) %>%
-  group_by(county) %>%  
-  mutate(total_covid_deaths = sum(new_deaths, na.rm = TRUE)) 
-
-```
-
-Question 6 Here is the code I used to 1. filter the data to the four states of interest and and calculate the number of daily new cases and the 7-day rolling mean 2. Make a facet plot of the data.
+Here is the code I used to 1. filter the data to the four states of interest and and calculate the number of daily new cases and the 7-day rolling mean 2. Make a facet plot of the data.
 
 ```{r}
 covid_all_states <- data %>%
@@ -282,4 +275,37 @@ ggplot(state_data, aes(x = date, y = new_cases, color = state)) +
 
 I could not figure out the last part of this question.
 
-Question 7
+**Question 7**
+
+Here is the code I used to calculate the Weighted Mean Center of the COVID-19 outbreak in the USA. I am not sure why the points are not on the map. I tried to filter it to just the longitude and latitude of the USA but I could not get that to work.
+
+```{r}
+county_centroids <- read_csv('https://raw.githubusercontent.com/mikejohnson51/csu-ess-330/refs/heads/main/resources/county-centroids.csv')
+
+data_temp <- data %>%
+  mutate(month = format(as.Date(date), "%m"))
+
+county_centroids_joined <- data_temp %>%
+  left_join(county_centroids, by = "fips")
+
+weighted_mean_center <- county_centroids_joined %>%
+  group_by(date) %>%
+  summarise(
+    total_cases = sum(cases, na.rm = TRUE),
+    weighted_LON = sum(LON * cases, na.rm = TRUE) / total_cases,
+    weighted_LAT = sum(LAT * cases, na.rm = TRUE) / total_cases
+  )
+
+ggplot(weighted_mean_center, aes(x = weighted_LON, y = weighted_LAT, color = factor(format(as.Date(date), "%m")), size = total_cases)) +
+  geom_point(alpha = 0.7) +
+  borders("state", fill = "gray90", colour = "white") +
+  scale_color_viridis_d() +
+  labs(title = "Weighted Mean Center of COVID in the USA",
+       x = "Longitude", y = "Latitude",
+       color = "Month", size = "Total Cases",
+       caption = "Source: County-level COVID-19 Data and Centroids") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+```
