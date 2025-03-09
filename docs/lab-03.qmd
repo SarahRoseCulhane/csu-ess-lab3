@@ -124,6 +124,8 @@ population_data_2021 <- population_data_filtered %>%
    select(contains("NAME") | contains("2021"), FIP)
 ```
 
+The dataframe "population_data_2021" has 49,463 rows and 19 columns. It has the same counties and states as the data covid frame but is the columns are named differently. It has data for total births and deaths separated into different categories. 
+
 Here is the code I used to find the range of populations in Colorado counties in 2021. The range was between 741 and 737287 people
 
 ```{r}
