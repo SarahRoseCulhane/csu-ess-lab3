@@ -4,7 +4,9 @@ subtitle: 'Ecosystem Science and Sustainability 330'
 author:
   - name: https://github.com/SarahRoseCulhane
     email: sculhane@colostate.edu
-format: html
+format: 
+  html:
+    self-contained: true
 ---
 
 **question 1: Public Data**
